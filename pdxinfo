@@ -1,0 +1,7 @@
+name=hello-playdate
+author=James O'Cull
+description=A silly game turning hand drawn pixel art into learning.
+bundleID=com.codefromajames.hello-playdate
+version=0.1
+imagePath=Images/cover
+launchSoundPath=Sounds/giggle-1
