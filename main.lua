@@ -96,16 +96,16 @@ function playdate.update()
     -- to be pressed at once, if the user is pressing diagonally.
 
     if playdate.buttonIsPressed(playdate.kButtonUp) then
-        playerSprite:moveBy(0, -2)
+        playerSprite:moveBy(0, -8)
     end
     if playdate.buttonIsPressed(playdate.kButtonRight) then
-        playerSprite:moveBy(2, 0)
+        playerSprite:moveBy(8, 0)
     end
     if playdate.buttonIsPressed(playdate.kButtonDown) then
-        playerSprite:moveBy(0, 2)
+        playerSprite:moveBy(0, 8)
     end
     if playdate.buttonIsPressed(playdate.kButtonLeft) then
-        playerSprite:moveBy(-2, 0)
+        playerSprite:moveBy(-8, 0)
     end
 
     -- Rotate the player sprite related to how the crank is positioned
