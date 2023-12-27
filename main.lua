@@ -21,6 +21,10 @@ local gfx <const> = playdate.graphics
 
 local playerSprite = nil
 
+-- Sound vars
+local fartSoundTable = nil
+local giggleSoundTable = nil
+
 -- A function to set up our game environment.
 
 function myGameSetUp()
@@ -52,6 +56,19 @@ function myGameSetUp()
             backgroundImage:draw(0, 0)
         end
     )
+
+    -- Setup game sounds
+    fartSoundTable = {
+        playdate.sound.sampleplayer.new("Sounds/fart-1"),
+        playdate.sound.sampleplayer.new("Sounds/fart-2"),
+        playdate.sound.sampleplayer.new("Sounds/fart-3"),
+        playdate.sound.sampleplayer.new("Sounds/fart-4"),
+    }
+    giggleSoundTable = {
+        playdate.sound.sampleplayer.new("Sounds/giggle-1"),
+        playdate.sound.sampleplayer.new("Sounds/giggle-2"),
+        playdate.sound.sampleplayer.new("Sounds/giggle-3"),
+    }
 end
 
 -- Now we'll call the function above to configure our game.
@@ -63,6 +80,14 @@ myGameSetUp()
 -- `playdate.update()` is the heart of every Playdate game.
 -- This function is called right before every frame is drawn onscreen.
 -- Use this function to poll input, run game logic, and move sprites.
+
+function playRandomSound(soundTable)
+    -- Get a random index from the table
+    local index = math.random(#soundTable)
+
+    -- Play the sound at that index
+    soundTable[index]:play()
+end
 
 function playdate.update()
     -- Poll the d-pad and move our player accordingly.
@@ -89,6 +114,14 @@ function playdate.update()
     else
         local angle = playdate.getCrankPosition()
         playerSprite:setRotation(angle)
+    end
+
+    -- Play sounds when we use buttons
+    if playdate.buttonJustPressed(playdate.kButtonA) then
+        playRandomSound(fartSoundTable)
+    end
+    if playdate.buttonJustPressed(playdate.kButtonB) then
+        playRandomSound(giggleSoundTable)
     end
 
     -- Call the functions below in playdate.update() to draw sprites and keep
