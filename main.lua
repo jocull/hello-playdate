@@ -1,5 +1,3 @@
-
-
 -- Name this file `main.lua`. Your game can use multiple source files if you wish
 -- (use the `import "myFilename"` command), but the simplest games can be written
 -- with just `main.lua`.
@@ -26,17 +24,16 @@ local playerSprite = nil
 -- A function to set up our game environment.
 
 function myGameSetUp()
-
     -- Set up the player sprite.
     -- The :setCenter() call specifies that the sprite will be anchored at its center.
     -- The :moveTo() call moves our sprite to the center of the display.
 
     local playerImage = gfx.image.new("Images/playerImage")
-    assert( playerImage ) -- make sure the image was where we thought
+    assert(playerImage) -- make sure the image was where we thought
 
-    playerSprite = gfx.sprite.new( playerImage )
-    playerSprite:moveTo( 200, 120 ) -- this is where the center of the sprite is placed; (200,120) is the center of the Playdate screen
-    playerSprite:add() -- This is critical!
+    playerSprite = gfx.sprite.new(playerImage)
+    playerSprite:moveTo(200, 120) -- this is where the center of the sprite is placed; (200,120) is the center of the Playdate screen
+    playerSprite:add()            -- This is critical!
 
     -- We want an environment displayed behind our sprite.
     -- There are generally two ways to do this:
@@ -45,17 +42,16 @@ function myGameSetUp()
     --       and call :setZIndex() with some low number so the background stays behind
     --       your other sprites.
 
-    local backgroundImage = gfx.image.new( "Images/background" )
-    assert( backgroundImage )
+    local backgroundImage = gfx.image.new("Images/background")
+    assert(backgroundImage)
 
     gfx.sprite.setBackgroundDrawingCallback(
-        function( x, y, width, height )
+        function(x, y, width, height)
             -- x,y,width,height is the updated area in sprite-local coordinates
             -- The clip rect is already set to this area, so we don't need to set it ourselves
-            backgroundImage:draw( 0, 0 )
+            backgroundImage:draw(0, 0)
         end
     )
-
 end
 
 -- Now we'll call the function above to configure our game.
@@ -69,23 +65,22 @@ myGameSetUp()
 -- Use this function to poll input, run game logic, and move sprites.
 
 function playdate.update()
-
     -- Poll the d-pad and move our player accordingly.
     -- (There are multiple ways to read the d-pad; this is the simplest.)
     -- Note that it is possible for more than one of these directions
     -- to be pressed at once, if the user is pressing diagonally.
 
-    if playdate.buttonIsPressed( playdate.kButtonUp ) then
-        playerSprite:moveBy( 0, -2 )
+    if playdate.buttonIsPressed(playdate.kButtonUp) then
+        playerSprite:moveBy(0, -2)
     end
-    if playdate.buttonIsPressed( playdate.kButtonRight ) then
-        playerSprite:moveBy( 2, 0 )
+    if playdate.buttonIsPressed(playdate.kButtonRight) then
+        playerSprite:moveBy(2, 0)
     end
-    if playdate.buttonIsPressed( playdate.kButtonDown ) then
-        playerSprite:moveBy( 0, 2 )
+    if playdate.buttonIsPressed(playdate.kButtonDown) then
+        playerSprite:moveBy(0, 2)
     end
-    if playdate.buttonIsPressed( playdate.kButtonLeft ) then
-        playerSprite:moveBy( -2, 0 )
+    if playdate.buttonIsPressed(playdate.kButtonLeft) then
+        playerSprite:moveBy(-2, 0)
     end
 
     -- Call the functions below in playdate.update() to draw sprites and keep
@@ -94,5 +89,4 @@ function playdate.update()
 
     gfx.sprite.update()
     playdate.timer.updateTimers()
-
 end
