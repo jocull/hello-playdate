@@ -86,7 +86,7 @@ function playRandomSound(soundTable)
     local index = math.random(#soundTable)
 
     -- Play the sound at that index
-    soundTable[index]:play()
+    soundTable[index]:copy():play()
 end
 
 function playdate.update()
