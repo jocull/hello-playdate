@@ -1,0 +1,13 @@
+{
+  "name": "hello-playdate",
+  "version": "0.0.1",
+  "description": "Playdate SDK experiments",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pdc . ./output.pdx",
+    "run": "npm run build && PlaydateSimulator ./output.pdx"
+  },
+  "author": "James O'Cull",
+  "license": "ISC"
+}
