@@ -3,7 +3,6 @@
 -- with just `main.lua`.
 
 -- You'll want to import these in just about every project you'll work on.
-
 import "CoreLibs/object"
 import "CoreLibs/graphics"
 import "CoreLibs/sprites"
@@ -14,28 +13,49 @@ import "CoreLibs/ui"
 -- to preface all graphics calls with "playdate.graphics", just use "gfx."
 -- Performance will be slightly enhanced, too.
 -- NOTE: Because it's local, you'll have to do it in every .lua source file.
-
 local gfx <const> = playdate.graphics
 local ui <const> = playdate.ui
 
 -- Here's our player sprite declaration. We'll scope it to this file because
 -- several functions need to access it.
-
 local playerSprite = nil
 
 -- Sound vars
-local fartSoundTable = nil
-local giggleSoundTable = nil
+local fartSoundPools = nil
+local giggleSoundPools = nil
+
+local SoundPool = {}
+function SoundPool:new(path, size)
+    if size == nil then
+        size = 8
+    end
+    assert(size > 0, "Invalid sound pool size")
+    local obj = setmetatable({}, { __index = SoundPool })
+    obj.idx = 1
+    obj.path = path
+    obj.pool = {}
+    for i = 1, size, 1 do
+        table.insert(obj.pool, playdate.sound.sampleplayer.new(path))
+    end
+    return obj
+end
+
+function SoundPool:play()
+    self.pool[self.idx]:play()
+    self.idx = self.idx + 1
+    if not self.pool[self.idx] then
+        self.idx = 1
+    end
+end
 
 -- A function to set up our game environment.
-
-function myGameSetUp()
+local function myGameSetUp()
     -- Set up the player sprite.
     -- The :setCenter() call specifies that the sprite will be anchored at its center.
     -- The :moveTo() call moves our sprite to the center of the display.
 
     local playerImage = gfx.image.new("Images/playerImage")
-    assert(playerImage) -- make sure the image was where we thought
+    assert(playerImage, "Player image not found") -- make sure the image was where we thought
 
     playerSprite = gfx.sprite.new(playerImage)
     playerSprite:moveTo(200, 120) -- this is where the center of the sprite is placed; (200,120) is the center of the Playdate screen
@@ -47,9 +67,8 @@ function myGameSetUp()
     -- 2) Use a tilemap, assign it to a sprite with sprite:setTilemap(tilemap),
     --       and call :setZIndex() with some low number so the background stays behind
     --       your other sprites.
-
     local backgroundImage = gfx.image.new("Images/background")
-    assert(backgroundImage)
+    assert(backgroundImage, "Background image not found")
 
     gfx.sprite.setBackgroundDrawingCallback(
         function(x, y, width, height)
@@ -60,35 +79,33 @@ function myGameSetUp()
     )
 
     -- Setup game sounds
-    fartSoundTable = {
-        playdate.sound.sampleplayer.new("Sounds/fart-1"),
-        playdate.sound.sampleplayer.new("Sounds/fart-2"),
-        playdate.sound.sampleplayer.new("Sounds/fart-3"),
-        playdate.sound.sampleplayer.new("Sounds/fart-4"),
+    fartSoundPools = {
+        SoundPool:new("Sounds/fart-1"),
+        SoundPool:new("Sounds/fart-2"),
+        SoundPool:new("Sounds/fart-3"),
+        SoundPool:new("Sounds/fart-4"),
     }
-    giggleSoundTable = {
-        playdate.sound.sampleplayer.new("Sounds/giggle-1"),
-        playdate.sound.sampleplayer.new("Sounds/giggle-2"),
-        playdate.sound.sampleplayer.new("Sounds/giggle-3"),
+    giggleSoundPools = {
+        SoundPool:new("Sounds/giggle-1"),
+        SoundPool:new("Sounds/giggle-2"),
+        SoundPool:new("Sounds/giggle-3"),
     }
 end
 
 -- Now we'll call the function above to configure our game.
 -- After this runs (it just runs once), nearly everything will be
 -- controlled by the OS calling `playdate.update()` 30 times a second.
-
 myGameSetUp()
 
 -- `playdate.update()` is the heart of every Playdate game.
 -- This function is called right before every frame is drawn onscreen.
 -- Use this function to poll input, run game logic, and move sprites.
-
-function playRandomSound(soundTable)
+local function playRandomSound(soundPoolTable)
     -- Get a random index from the table
-    local index = math.random(#soundTable)
+    local index = math.random(#soundPoolTable)
 
     -- Play the sound at that index
-    soundTable[index]:copy():play()
+    soundPoolTable[index]:play()
 end
 
 function playdate.update()
@@ -96,7 +113,6 @@ function playdate.update()
     -- (There are multiple ways to read the d-pad; this is the simplest.)
     -- Note that it is possible for more than one of these directions
     -- to be pressed at once, if the user is pressing diagonally.
-
     if playdate.buttonIsPressed(playdate.kButtonUp) then
         playerSprite:moveBy(0, -8)
     end
@@ -120,10 +136,10 @@ function playdate.update()
 
     -- Play sounds when we use buttons
     if playdate.buttonJustPressed(playdate.kButtonA) then
-        playRandomSound(fartSoundTable)
+        playRandomSound(fartSoundPools)
     end
     if playdate.buttonJustPressed(playdate.kButtonB) then
-        playRandomSound(giggleSoundTable)
+        playRandomSound(giggleSoundPools)
     end
 
     -- Call the functions below in playdate.update() to draw sprites and keep
