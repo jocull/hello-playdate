@@ -26,6 +26,7 @@ local SCREEN <const> = {}
     SCREEN.center = playdate.geometry.point.new(
         SCREEN.rect.width / 2,
         SCREEN.rect.height / 2)
+    SCREEN.sprites = {}
 end)()
 
 -- Here's our player sprite declaration. We'll scope it to this file because
@@ -67,15 +68,53 @@ end
     -- Set up the player sprite.
     -- The :setCenter() call specifies that the sprite will be anchored at its center.
     -- The :moveTo() call moves our sprite to the center of the display.
-
-    local playerImage = assert(
+    local playerImg = assert(
         gfx.image.new("Images/playerImage"),
         "Player image not found")
-
-    playerSprite = gfx.sprite.new(playerImage)
+    playerSprite = gfx.sprite.new(playerImg)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
     playerSprite:moveTo(SCREEN.center:unpack())
     playerSprite:add()
+
+    function genSprite(x, y, w, h)
+        local sprite = gfx.sprite.new()
+        sprite:setCollideRect(0, 0, w, h)
+        sprite:moveTo(x, y)
+        sprite:add()
+        print("Generated new sprite", x, y, w, h)
+        return sprite
+    end
+
+    -- In order to use boundary collisions we have to generate boxes
+    -- that cover the outer edges. I can't seem to get collisions to work
+    -- for an "interior" area of a rectangle (e.g. the screen boundary).
+    --
+    -- We add the player buffer into this as well so that the character is
+    -- allowed to go off screen, but not endlessly.
+    local playerBoundary = playerSprite.width * 1.5
+    SCREEN.sprites.left = genSprite(
+        SCREEN.origin.x - playerBoundary,
+        SCREEN.origin.y - playerBoundary,
+        -10,
+        SCREEN.height * 1.5)
+
+    SCREEN.sprites.right = genSprite(
+        SCREEN.origin.x + SCREEN.width + playerBoundary,
+        SCREEN.origin.y - playerBoundary,
+        10,
+        SCREEN.height * 1.5)
+
+    SCREEN.sprites.top = genSprite(
+        SCREEN.origin.x - playerBoundary,
+        SCREEN.origin.y - playerBoundary,
+        SCREEN.width * 1.5,
+        -10)
+
+    SCREEN.sprites.bottom = genSprite(
+        SCREEN.origin.x - playerBoundary,
+        SCREEN.origin.y + SCREEN.height + playerBoundary,
+        SCREEN.width * 1.5,
+        10)
 
     -- We want an environment displayed behind our sprite.
     -- There are generally two ways to do this:
@@ -83,7 +122,7 @@ end
     -- 2) Use a tilemap, assign it to a sprite with sprite:setTilemap(tilemap),
     --       and call :setZIndex() with some low number so the background stays behind
     --       your other sprites.
-    local backgroundImage = assert(
+    local backgroundImg = assert(
         gfx.image.new("Images/background"),
         "Background image not found")
 
@@ -91,7 +130,7 @@ end
         function(x, y, width, height)
             -- x,y,width,height is the updated area in sprite-local coordinates
             -- The clip rect is already set to this area, so we don't need to set it ourselves
-            backgroundImage:draw(SCREEN.origin:unpack())
+            backgroundImg:draw(SCREEN.origin:unpack())
         end
     )
 
@@ -125,18 +164,31 @@ function playdate.update()
     -- (There are multiple ways to read the d-pad; this is the simplest.)
     -- Note that it is possible for more than one of these directions
     -- to be pressed at once, if the user is pressing diagonally.
+    local moveSpeed = 8
+    local goalX, goalY = playerSprite.x, playerSprite.y
+    local buttonIsPressed = false
     if playdate.buttonIsPressed(playdate.kButtonUp) then
-        playerSprite:moveBy(0, -8)
-        -- TODO: Convert to moveWithCollisions
+        goalY = goalY - moveSpeed
+        buttonIsPressed = true
     end
     if playdate.buttonIsPressed(playdate.kButtonRight) then
-        playerSprite:moveBy(8, 0)
+        goalX = goalX + moveSpeed
+        buttonIsPressed = true
     end
     if playdate.buttonIsPressed(playdate.kButtonDown) then
-        playerSprite:moveBy(0, 8)
+        goalY = goalY + moveSpeed
+        buttonIsPressed = true
     end
     if playdate.buttonIsPressed(playdate.kButtonLeft) then
-        playerSprite:moveBy(-8, 0)
+        goalX = goalX - moveSpeed
+        buttonIsPressed = true
+    end
+
+    -- Remember to use :moveWithCollisions(), and not :moveTo() or :moveBy(), or collisions won't happen!
+    -- To do a "moveBy" operation, sprite:moveBy(5, 5) == sprite:moveWithCollisions(sprite.x + 5, sprite.y + 5)
+    if buttonIsPressed then
+        local actualX, actualY, collisions, numberOfCollisions = playerSprite:moveWithCollisions(goalX, goalY)
+        print(actualX, actualY, collisions, numberOfCollisions)
     end
 
     -- Rotate the player sprite related to how the crank is positioned
