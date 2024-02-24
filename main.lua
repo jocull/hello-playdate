@@ -159,12 +159,14 @@ local function playRandomSound(soundPoolTable)
     soundPoolTable[index]:play()
 end
 
+playdate.display.setRefreshRate(50)
+
 function playdate.update()
     -- Poll the d-pad and move our player accordingly.
     -- (There are multiple ways to read the d-pad; this is the simplest.)
     -- Note that it is possible for more than one of these directions
     -- to be pressed at once, if the user is pressing diagonally.
-    local moveSpeed = 8
+    local moveSpeed = 5
     local goalX, goalY = playerSprite.x, playerSprite.y
     local buttonIsPressed = false
     if playdate.buttonIsPressed(playdate.kButtonUp) then
@@ -188,7 +190,7 @@ function playdate.update()
     -- To do a "moveBy" operation, sprite:moveBy(5, 5) == sprite:moveWithCollisions(sprite.x + 5, sprite.y + 5)
     if buttonIsPressed then
         local actualX, actualY, collisions, numberOfCollisions = playerSprite:moveWithCollisions(goalX, goalY)
-        print(actualX, actualY, collisions, numberOfCollisions)
+        -- print(actualX, actualY, collisions, numberOfCollisions)
     end
 
     -- Rotate the player sprite related to how the crank is positioned
