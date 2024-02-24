@@ -16,6 +16,18 @@ import "CoreLibs/ui"
 local gfx <const> = playdate.graphics
 local ui <const> = playdate.ui
 
+-- Helpful vars
+local SCREEN <const> = {}
+(function ()
+    SCREEN.origin = playdate.geometry.point.new(0, 0)
+    SCREEN.rect = playdate.geometry.rect.new(SCREEN.origin.x, SCREEN.origin.y, 400, 240)
+    SCREEN.height = SCREEN.rect.height
+    SCREEN.width = SCREEN.rect.width
+    SCREEN.center = playdate.geometry.point.new(
+        SCREEN.rect.width / 2,
+        SCREEN.rect.height / 2)
+end)()
+
 -- Here's our player sprite declaration. We'll scope it to this file because
 -- several functions need to access it.
 local playerSprite = nil
@@ -25,7 +37,7 @@ local fartSoundPools = nil
 local giggleSoundPools = nil
 
 local SoundPool = {}
-function SoundPool:new(path, size)
+function SoundPool.new(path, size)
     if size == nil then
         size = 8
     end
@@ -49,17 +61,21 @@ function SoundPool:play()
 end
 
 -- A function to set up our game environment.
-local function myGameSetUp()
+-- After this runs (it just runs once), nearly everything will be
+-- controlled by the OS calling `playdate.update()` 30 times a second.
+(function ()
     -- Set up the player sprite.
     -- The :setCenter() call specifies that the sprite will be anchored at its center.
     -- The :moveTo() call moves our sprite to the center of the display.
 
-    local playerImage = gfx.image.new("Images/playerImage")
-    assert(playerImage, "Player image not found") -- make sure the image was where we thought
+    local playerImage = assert(
+        gfx.image.new("Images/playerImage"),
+        "Player image not found")
 
     playerSprite = gfx.sprite.new(playerImage)
-    playerSprite:moveTo(200, 120) -- this is where the center of the sprite is placed; (200,120) is the center of the Playdate screen
-    playerSprite:add()            -- This is critical!
+    playerSprite:setCollideRect(0, 0, playerSprite:getSize())
+    playerSprite:moveTo(SCREEN.center:unpack())
+    playerSprite:add()
 
     -- We want an environment displayed behind our sprite.
     -- There are generally two ways to do this:
@@ -67,35 +83,31 @@ local function myGameSetUp()
     -- 2) Use a tilemap, assign it to a sprite with sprite:setTilemap(tilemap),
     --       and call :setZIndex() with some low number so the background stays behind
     --       your other sprites.
-    local backgroundImage = gfx.image.new("Images/background")
-    assert(backgroundImage, "Background image not found")
+    local backgroundImage = assert(
+        gfx.image.new("Images/background"),
+        "Background image not found")
 
     gfx.sprite.setBackgroundDrawingCallback(
         function(x, y, width, height)
             -- x,y,width,height is the updated area in sprite-local coordinates
             -- The clip rect is already set to this area, so we don't need to set it ourselves
-            backgroundImage:draw(0, 0)
+            backgroundImage:draw(SCREEN.origin:unpack())
         end
     )
 
     -- Setup game sounds
     fartSoundPools = {
-        SoundPool:new("Sounds/fart-1"),
-        SoundPool:new("Sounds/fart-2"),
-        SoundPool:new("Sounds/fart-3"),
-        SoundPool:new("Sounds/fart-4"),
+        SoundPool.new("Sounds/fart-1"),
+        SoundPool.new("Sounds/fart-2"),
+        SoundPool.new("Sounds/fart-3"),
+        SoundPool.new("Sounds/fart-4"),
     }
     giggleSoundPools = {
-        SoundPool:new("Sounds/giggle-1"),
-        SoundPool:new("Sounds/giggle-2"),
-        SoundPool:new("Sounds/giggle-3"),
+        SoundPool.new("Sounds/giggle-1"),
+        SoundPool.new("Sounds/giggle-2"),
+        SoundPool.new("Sounds/giggle-3"),
     }
-end
-
--- Now we'll call the function above to configure our game.
--- After this runs (it just runs once), nearly everything will be
--- controlled by the OS calling `playdate.update()` 30 times a second.
-myGameSetUp()
+end)()
 
 -- `playdate.update()` is the heart of every Playdate game.
 -- This function is called right before every frame is drawn onscreen.
@@ -115,6 +127,7 @@ function playdate.update()
     -- to be pressed at once, if the user is pressing diagonally.
     if playdate.buttonIsPressed(playdate.kButtonUp) then
         playerSprite:moveBy(0, -8)
+        -- TODO: Convert to moveWithCollisions
     end
     if playdate.buttonIsPressed(playdate.kButtonRight) then
         playerSprite:moveBy(8, 0)
