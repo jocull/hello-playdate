@@ -81,6 +81,9 @@ end
         "Player image not found")
     playerSprite = gfx.sprite.new(playerImg)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
+    playerSprite.collisionResponse = function (other)
+        return playdate.graphics.sprite.kCollisionTypeSlide
+    end
     playerSprite:moveTo(SCREEN.center:unpack())
     playerSprite:add()
 
@@ -172,6 +175,9 @@ playdate.display.setRefreshRate(50)
 
 local function onCrankChange(docked, angle)
     playerSprite:setRotation(angle)
+    playerSprite:setCollideRect(0, 0, playerSprite:getSize())
+    playerSprite:moveWithCollisions(playerSprite.x, playerSprite.y)
+
     crankState.changed = false
     if docked then
         --[[
