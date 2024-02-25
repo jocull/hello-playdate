@@ -76,7 +76,7 @@ end
     playerSprite:moveTo(SCREEN.center:unpack())
     playerSprite:add()
 
-    function genSprite(x, y, w, h)
+    local function genSprite(x, y, w, h)
         local sprite = gfx.sprite.new()
         sprite:setCollideRect(0, 0, w, h)
         sprite:moveTo(x, y)
@@ -91,30 +91,31 @@ end
     --
     -- We add the player buffer into this as well so that the character is
     -- allowed to go off screen, but not endlessly.
-    local playerBoundary = playerSprite.width * 1.5
-    SCREEN.sprites.left = genSprite(
-        SCREEN.origin.x - playerBoundary,
-        SCREEN.origin.y - playerBoundary,
-        -10,
-        SCREEN.height * 1.5)
+    local playerBoundary1 = playerSprite.width * 2
+    local playerBoundary2 = playerBoundary1 * 4
+    SCREEN.sprites.top = genSprite(
+        SCREEN.origin.x - SCREEN.width,
+        SCREEN.origin.y - playerBoundary2,
+        SCREEN.width * 3,
+        playerBoundary1)
 
     SCREEN.sprites.right = genSprite(
-        SCREEN.origin.x + SCREEN.width + playerBoundary,
-        SCREEN.origin.y - playerBoundary,
-        10,
-        SCREEN.height * 1.5)
-
-    SCREEN.sprites.top = genSprite(
-        SCREEN.origin.x - playerBoundary,
-        SCREEN.origin.y - playerBoundary,
-        SCREEN.width * 1.5,
-        -10)
+        SCREEN.origin.x + SCREEN.width + playerBoundary1,
+        SCREEN.origin.y - SCREEN.height,
+        playerBoundary1,
+        SCREEN.height * 3)
 
     SCREEN.sprites.bottom = genSprite(
-        SCREEN.origin.x - playerBoundary,
-        SCREEN.origin.y + SCREEN.height + playerBoundary,
-        SCREEN.width * 1.5,
-        10)
+        SCREEN.origin.x - SCREEN.width,
+        SCREEN.origin.y + SCREEN.height + playerBoundary1,
+        SCREEN.width * 3,
+        playerBoundary1)
+
+    SCREEN.sprites.left = genSprite(
+        SCREEN.origin.x - playerBoundary2,
+        SCREEN.origin.y - SCREEN.height,
+        playerBoundary1,
+        SCREEN.height * 3)
 
     -- We want an environment displayed behind our sprite.
     -- There are generally two ways to do this:
