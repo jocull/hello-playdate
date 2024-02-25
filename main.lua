@@ -92,7 +92,7 @@ end
         sprite:setCollideRect(0, 0, w, h)
         sprite:moveTo(x, y)
         sprite:add()
-        print("Generated new sprite", x, y, w, h)
+        -- print("Generated new sprite", x, y, w, h)
         return sprite
     end
 
@@ -223,6 +223,7 @@ function playdate.update()
     if buttonIsPressed then
         local actualX, actualY, collisions, numberOfCollisions = playerSprite:moveWithCollisions(goalX, goalY)
         -- print(actualX, actualY, collisions, numberOfCollisions)
+        -- printTable(playerSprite)
     end
 
     -- Rotate the player sprite related to how the crank is positioned
@@ -237,7 +238,8 @@ function playdate.update()
         crankState.angle = crankAngle
     end
     if crankState.changed then
-        print('crank changed!', crankDocked, crankAngle)
+        -- print('crank changed!', crankDocked, crankAngle)
+        -- printTable(playerSprite)
         onCrankChange(crankDocked, crankAngle)
     end
 
