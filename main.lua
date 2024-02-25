@@ -197,6 +197,7 @@ function playdate.update()
     -- Rotate the player sprite related to how the crank is positioned
     if playdate.isCrankDocked() then
         playerSprite:setRotation(0.0)
+        ui.crankIndicator:draw()
     else
         local angle = playdate.getCrankPosition()
         playerSprite:setRotation(angle)
@@ -214,10 +215,6 @@ function playdate.update()
     -- timers updated. (We aren't using timers in this example, but in most
     -- average-complexity games, you will.)
     gfx.sprite.update()
-
-    if playdate.isCrankDocked() then
-        ui.crankIndicator:draw()
-    end
 
     playdate.timer.updateTimers()
 end
