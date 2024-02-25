@@ -102,30 +102,30 @@ end
     --
     -- We add the player buffer into this as well so that the character is
     -- allowed to go off screen, but not endlessly.
-    local playerBoundary1 = playerSprite.width * 2
-    local playerBoundary2 = playerBoundary1 * 4
+    local outerBuffer = playerSprite.width * 1.5
+    local outerBuffer2 = outerBuffer * 2
     SCREEN.sprites.top = genSprite(
         SCREEN.origin.x - SCREEN.width,
-        SCREEN.origin.y - playerBoundary2,
+        SCREEN.origin.y - outerBuffer2,
         SCREEN.width * 3,
-        playerBoundary1)
+        outerBuffer)
 
     SCREEN.sprites.right = genSprite(
-        SCREEN.origin.x + SCREEN.width + playerBoundary1,
+        SCREEN.origin.x + SCREEN.width + outerBuffer,
         SCREEN.origin.y - SCREEN.height,
-        playerBoundary1,
+        outerBuffer2,
         SCREEN.height * 3)
 
     SCREEN.sprites.bottom = genSprite(
         SCREEN.origin.x - SCREEN.width,
-        SCREEN.origin.y + SCREEN.height + playerBoundary1,
+        SCREEN.origin.y + SCREEN.height + outerBuffer,
         SCREEN.width * 3,
-        playerBoundary1)
+        outerBuffer2)
 
     SCREEN.sprites.left = genSprite(
-        SCREEN.origin.x - playerBoundary2,
+        SCREEN.origin.x - outerBuffer2,
         SCREEN.origin.y - SCREEN.height,
-        playerBoundary1,
+        outerBuffer,
         SCREEN.height * 3)
 
     -- We want an environment displayed behind our sprite.
