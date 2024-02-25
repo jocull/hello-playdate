@@ -37,6 +37,14 @@ local playerSprite = nil
 local fartSoundPools = nil
 local giggleSoundPools = nil
 
+-- Crank vars
+local crankState = {
+    changed = true,
+    docked = playdate.isCrankDocked(),
+    dockedRecently = playdate.isCrankDocked(),
+    angle = playdate.getCrankPosition(),
+}
+
 local SoundPool = {}
 function SoundPool.new(path, size)
     if size == nil then
@@ -162,6 +170,23 @@ end
 
 playdate.display.setRefreshRate(50)
 
+local function onCrankChange(docked, angle)
+    playerSprite:setRotation(angle)
+    crankState.changed = false
+    if docked then
+        --[[
+        "As your game calls playdate.ui.crankIndicator:draw() on successive frames,
+        the Playdate screen will display a "Use the Crank" message for ~0.7 seconds,
+        then an animation of a rotating crank for ~1.4 seconds. (The direction of
+        animation is specified by .clockwise.)"
+        --]]
+        crankState.dockedRecently = true
+        playdate.timer.performAfterDelay((1400 + 700) * 3, function ()
+            crankState.dockedRecently = false
+        end)
+    end
+end
+
 function playdate.update()
     -- Poll the d-pad and move our player accordingly.
     -- (There are multiple ways to read the d-pad; this is the simplest.)
@@ -195,12 +220,19 @@ function playdate.update()
     end
 
     -- Rotate the player sprite related to how the crank is positioned
-    if playdate.isCrankDocked() then
-        playerSprite:setRotation(0.0)
-        ui.crankIndicator:draw()
-    else
-        local angle = playdate.getCrankPosition()
-        playerSprite:setRotation(angle)
+    local crankDocked = playdate.isCrankDocked()
+    if crankState.docked ~= crankDocked then
+        crankState.changed = true
+        crankState.docked = crankDocked
+    end
+    local crankAngle = playdate.getCrankPosition()
+    if crankState.angle ~= crankAngle then
+        crankState.changed = true
+        crankState.angle = crankAngle
+    end
+    if crankState.changed then
+        print('crank changed!', crankDocked, crankAngle)
+        onCrankChange(crankDocked, crankAngle)
     end
 
     -- Play sounds when we use buttons
@@ -215,6 +247,11 @@ function playdate.update()
     -- timers updated. (We aren't using timers in this example, but in most
     -- average-complexity games, you will.)
     gfx.sprite.update()
+
+    -- "Note that if sprites are being used, this call should usually happen after playdate.graphics.sprite.update()"
+    if crankState.dockedRecently then
+        ui.crankIndicator:draw()
+    end
 
     playdate.timer.updateTimers()
 end
