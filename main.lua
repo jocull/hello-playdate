@@ -26,6 +26,9 @@ local SCREEN <const> = {}
     SCREEN.center = playdate.geometry.point.new(
         SCREEN.rect.width / 2,
         SCREEN.rect.height / 2)
+    SCREEN.offscreen = playdate.geometry.point.new(
+        SCREEN.width * -3,
+        SCREEN.height * -3)
     SCREEN.sprites = {}
 end)()
 
@@ -109,7 +112,7 @@ end
         gfx.image.new("Images/arrow"),
         "Arrow image not found")
     arrowSprite = gfx.sprite.new(arrowImg)
-    arrowSprite:moveTo(-999, -999)
+    arrowSprite:moveTo(SCREEN.offscreen:unpack())
     arrowSprite:add()
 
     local function genSprite(x, y, w, h)
@@ -252,12 +255,16 @@ function playdate.update()
 
         -- Did the player move off screen?
         if not SCREEN.rect:intersects(playerSprite:getBoundsRect()) then
-            arrowSprite:moveTo(SCREEN.center:unpack())
             local sx, sy = playerSprite.x, playerSprite.y
-            local pointerRotation = getAngleDegrees(SCREEN.center.x, SCREEN.center.y, sx, sy)
+            local aw, ah = arrowSprite.width / 2, arrowSprite.height / 2
+            local ax = math.max(aw, math.min(SCREEN.width - aw, sx))
+            local ay = math.max(ah, math.min(SCREEN.height - ah, sy))
+            arrowSprite:moveTo(ax, ay)
+
+            local pointerRotation = getAngleDegrees(ax, ay, sx, sy)
             arrowSprite:setRotation(pointerRotation)
         else
-            arrowSprite:moveTo(-999, -999)
+            arrowSprite:moveTo(SCREEN.offscreen:unpack())
         end
     end
 
