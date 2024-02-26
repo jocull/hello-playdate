@@ -32,6 +32,7 @@ end)()
 -- Here's our player sprite declaration. We'll scope it to this file because
 -- several functions need to access it.
 local playerSprite = nil
+local arrowSprite = nil
 
 -- Sound vars
 local fartSoundPools = nil
@@ -69,6 +70,23 @@ function SoundPool:play()
     end
 end
 
+local function getAngleDegrees(fromX, fromY, toX, toY)
+    -- Calculate the difference between the x- and y-coordinates
+    local deltaX = fromX - toX
+    local deltaY = fromY - toY
+    -- Calculate the arctangent of the ratio of the y- and x-coordinates
+    local radians = math.atan(deltaY, deltaX)
+    -- Convert radians to degrees by multiplying by 180 / Math.PI
+    local degrees = (radians * 180) / math.pi
+    degrees = degrees - 90 -- Adjust for drawing
+    -- If the angle is negative, add 360 degrees to make it positive
+    if degrees < 0 then
+        degrees = (degrees + 360) % 360
+    end
+    -- Return the angle in degrees
+    return degrees
+end
+
 -- A function to set up our game environment.
 -- After this runs (it just runs once), nearly everything will be
 -- controlled by the OS calling `playdate.update()` 30 times a second.
@@ -86,6 +104,13 @@ end
     end
     playerSprite:moveTo(SCREEN.center:unpack())
     playerSprite:add()
+
+    local arrowImg = assert(
+        gfx.image.new("Images/arrow"),
+        "Arrow image not found")
+    arrowSprite = gfx.sprite.new(arrowImg)
+    arrowSprite:moveTo(-999, -999)
+    arrowSprite:add()
 
     local function genSprite(x, y, w, h)
         local sprite = gfx.sprite.new()
@@ -224,6 +249,16 @@ function playdate.update()
         local actualX, actualY, collisions, numberOfCollisions = playerSprite:moveWithCollisions(goalX, goalY)
         -- print(actualX, actualY, collisions, numberOfCollisions)
         -- printTable(playerSprite)
+
+        -- Did the player move off screen?
+        if not SCREEN.rect:intersects(playerSprite:getBoundsRect()) then
+            arrowSprite:moveTo(SCREEN.center:unpack())
+            local sx, sy = playerSprite.x, playerSprite.y
+            local pointerRotation = getAngleDegrees(SCREEN.center.x, SCREEN.center.y, sx, sy)
+            arrowSprite:setRotation(pointerRotation)
+        else
+            arrowSprite:moveTo(-999, -999)
+        end
     end
 
     -- Rotate the player sprite related to how the crank is positioned
