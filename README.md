@@ -18,4 +18,4 @@ Without `npm`, you  can inspect [package.json](package.json) to see what command
 
 ![cover image](Images/card.png)
 
-![example image](Readme/simulator-example.png)
+![demo recording](Readme/demo-recording.gif)
