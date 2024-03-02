@@ -14,19 +14,20 @@ import "CoreLibs/ui"
 -- Performance will be slightly enhanced, too.
 -- NOTE: Because it's local, you'll have to do it in every .lua source file.
 local gfx <const> = playdate.graphics
+local geo <const> = playdate.geometry
 local ui <const> = playdate.ui
 
 -- Helpful vars
 local SCREEN <const> = {}
-(function ()
-    SCREEN.origin = playdate.geometry.point.new(0, 0)
-    SCREEN.rect = playdate.geometry.rect.new(SCREEN.origin.x, SCREEN.origin.y, 400, 240)
+(function()
+    SCREEN.origin = geo.point.new(0, 0)
+    SCREEN.rect = geo.rect.new(SCREEN.origin.x, SCREEN.origin.y, 400, 240)
     SCREEN.height = SCREEN.rect.height
     SCREEN.width = SCREEN.rect.width
-    SCREEN.center = playdate.geometry.point.new(
+    SCREEN.center = geo.point.new(
         SCREEN.rect.width / 2,
         SCREEN.rect.height / 2)
-    SCREEN.offscreen = playdate.geometry.point.new(
+    SCREEN.offscreen = geo.point.new(
         SCREEN.width * -3,
         SCREEN.height * -3)
     SCREEN.sprites = {}
@@ -93,7 +94,7 @@ end
 -- A function to set up our game environment.
 -- After this runs (it just runs once), nearly everything will be
 -- controlled by the OS calling `playdate.update()` 30 times a second.
-(function ()
+(function()
     -- Set up the player sprite.
     -- The :setCenter() call specifies that the sprite will be anchored at its center.
     -- The :moveTo() call moves our sprite to the center of the display.
@@ -102,9 +103,10 @@ end
         "Player image not found")
     playerSprite = gfx.sprite.new(playerImg)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
-    playerSprite.collisionResponse = function (other)
+    playerSprite.collisionResponse = function(other)
         return playdate.graphics.sprite.kCollisionTypeSlide
     end
+    playerSprite:setZIndex(32767) -- always on top
     playerSprite:moveTo(SCREEN.center:unpack())
     playerSprite:add()
 
@@ -155,6 +157,46 @@ end
         SCREEN.origin.y - SCREEN.height,
         outerBuffer,
         SCREEN.height * 3)
+
+    local tootieImg = gfx.image.new('Images/tootie')
+    local glooberImg = gfx.image.new('Images/gloober')
+
+    local function genThing1()
+        local t = gfx.sprite.new(glooberImg)
+        t:setImageFlip(gfx.kImageUnflipped)
+        t:setScale(2)
+        t:moveTo(SCREEN.center.x - (SCREEN.center.x / 2), SCREEN.center.y)
+        t:add()
+        local a = gfx.animator.new(
+            1000,
+            geo.point.new(t.x, t.y),
+            geo.point.new(0, SCREEN.center.y - (SCREEN.center.y / 2)),
+            playdate.easingFunctions.inOutCubic)
+        a.repeatCount = -1 -- forever
+        a.reverses = true
+        t:setAnimator(a)
+        return t
+    end
+
+    local function genThing2()
+        local t = gfx.sprite.new(tootieImg)
+        t:setImageFlip(gfx.kImageFlippedX)
+        t:moveTo(SCREEN.center.x + (SCREEN.center.x / 2), SCREEN.center.y)
+        t:add()
+
+        local a = gfx.animator.new(
+            1000,
+            geo.point.new(t.x, t.y),
+            geo.point.new(SCREEN.width, SCREEN.center.y + (SCREEN.center.y / 2)),
+            playdate.easingFunctions.inOutCubic)
+        a.repeatCount = -1 -- forever
+        a.reverses = true
+        t:setAnimator(a)
+        return t
+    end
+
+    local thing1 = genThing1()
+    local thing2 = genThing2()
 
     -- We want an environment displayed behind our sprite.
     -- There are generally two ways to do this:
@@ -215,7 +257,7 @@ local function onCrankChange(docked, angle)
         animation is specified by .clockwise.)"
         --]]
         crankState.dockedRecently = true
-        playdate.timer.performAfterDelay((1400 + 700) * 3, function ()
+        playdate.timer.performAfterDelay((1400 + 700) * 3, function()
             crankState.dockedRecently = false
         end)
     end
