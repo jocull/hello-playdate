@@ -19,6 +19,12 @@ local ui <const> = playdate.ui
 
 -- Helpful vars
 local SCREEN <const> = {}
+local SPRITE_TAG <const> = {
+    wall = 1,
+    player = 2,
+    tootie = 3,
+    gloober = 4,
+}
 (function()
     SCREEN.origin = geo.point.new(0, 0)
     SCREEN.rect = geo.rect.new(SCREEN.origin.x, SCREEN.origin.y, 400, 240)
@@ -103,11 +109,21 @@ end
         "Player image not found")
     playerSprite = gfx.sprite.new(playerImg)
     playerSprite:setCollideRect(0, 0, playerSprite:getSize())
-    playerSprite.collisionResponse = function(other)
-        return playdate.graphics.sprite.kCollisionTypeSlide
+
+    -- Beware, weird syntax for method implementation of child object
+    -- Don't use playerSprite.collisionResponse = function(other) ...
+    function playerSprite:collisionResponse(other)
+        if other:getTag() == SPRITE_TAG.wall then
+            return gfx.sprite.kCollisionTypeSlide
+        elseif other:getTag() == SPRITE_TAG.gloober then
+            return gfx.sprite.kCollisionTypeBounce
+        end
+        return gfx.sprite.kCollisionTypeOverlap
     end
+
     playerSprite:setZIndex(32767) -- always on top
     playerSprite:moveTo(SCREEN.center:unpack())
+    playerSprite:setTag(SPRITE_TAG.player)
     playerSprite:add()
 
     local arrowImg = assert(
@@ -117,10 +133,11 @@ end
     arrowSprite:moveTo(SCREEN.offscreen:unpack())
     arrowSprite:add()
 
-    local function genSprite(x, y, w, h)
+    local function genWallSprite(x, y, w, h)
         local sprite = gfx.sprite.new()
         sprite:setCollideRect(0, 0, w, h)
         sprite:moveTo(x, y)
+        sprite:setTag(SPRITE_TAG.wall)
         sprite:add()
         -- print("Generated new sprite", x, y, w, h)
         return sprite
@@ -134,25 +151,25 @@ end
     -- allowed to go off screen, but not endlessly.
     local outerBuffer = playerSprite.width * 1.5
     local outerBuffer2 = outerBuffer * 2
-    SCREEN.sprites.top = genSprite(
+    SCREEN.sprites.top = genWallSprite(
         SCREEN.origin.x - SCREEN.width,
         SCREEN.origin.y - outerBuffer2,
         SCREEN.width * 3,
         outerBuffer)
 
-    SCREEN.sprites.right = genSprite(
+    SCREEN.sprites.right = genWallSprite(
         SCREEN.origin.x + SCREEN.width + outerBuffer,
         SCREEN.origin.y - SCREEN.height,
         outerBuffer2,
         SCREEN.height * 3)
 
-    SCREEN.sprites.bottom = genSprite(
+    SCREEN.sprites.bottom = genWallSprite(
         SCREEN.origin.x - SCREEN.width,
         SCREEN.origin.y + SCREEN.height + outerBuffer,
         SCREEN.width * 3,
         outerBuffer2)
 
-    SCREEN.sprites.left = genSprite(
+    SCREEN.sprites.left = genWallSprite(
         SCREEN.origin.x - outerBuffer2,
         SCREEN.origin.y - SCREEN.height,
         outerBuffer,
@@ -165,6 +182,8 @@ end
         local t = gfx.sprite.new(glooberImg)
         t:setImageFlip(gfx.kImageUnflipped)
         t:setScale(2)
+        t:setCollideRect(0, 0, t:getSize())
+        t:setTag(SPRITE_TAG.gloober)
         t:moveTo(SCREEN.center.x - (SCREEN.center.x / 2), SCREEN.center.y)
         t:add()
         local a = gfx.animator.new(
@@ -174,13 +193,15 @@ end
             playdate.easingFunctions.inOutCubic)
         a.repeatCount = -1 -- forever
         a.reverses = true
-        t:setAnimator(a)
+        t:setAnimator(a, true)
         return t
     end
 
     local function genThing2()
         local t = gfx.sprite.new(tootieImg)
         t:setImageFlip(gfx.kImageFlippedX)
+        t:setCollideRect(0, 0, t:getSize())
+        t:setTag(SPRITE_TAG.tootie)
         t:moveTo(SCREEN.center.x + (SCREEN.center.x / 2), SCREEN.center.y)
         t:add()
 
@@ -191,7 +212,7 @@ end
             playdate.easingFunctions.inOutCubic)
         a.repeatCount = -1 -- forever
         a.reverses = true
-        t:setAnimator(a)
+        t:setAnimator(a, true)
         return t
     end
 
